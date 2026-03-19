@@ -1,0 +1,6 @@
+langchain-community
+sentence-transformers
+qdrant-client
+langchain-groq
+fastembed
+python-dotenv
