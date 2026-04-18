@@ -2,6 +2,7 @@ from embedding import EmbeddingManager
 from vector_store import VectorStore
 from retreiver import RAGRetriever
 from rag import rag, llm
+from reranker import DocumentReranker
 import os
 from dotenv import load_dotenv
 
@@ -14,6 +15,8 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 QDRANT_COLLECTION_NAME = os.getenv("QDRANT_COLLECTION_NAME", "chapterwiseReferenceManual")
 SPARSE_MODEL_NAME = os.getenv("SPARSE_MODEL_NAME", "Qdrant/bm25")
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "20"))
+ENABLE_RERANKING = os.getenv("ENABLE_RERANKING", "true").lower() == "true"
+RERANK_TOP_K = int(os.getenv("RERANK_TOP_K", str(RAG_TOP_K)))
 
 if not QDRANT_URL:
     raise ValueError("Missing required environment variable: QDRANT_URL")
@@ -36,13 +39,22 @@ rag_retriever = RAGRetriever(
     sparse_model=sparse_model
 )
 
-#clear the console
+reranker = DocumentReranker() if ENABLE_RERANKING else None
 
+#clear the console
 
 os.system('cls' if os.name == 'nt' else 'clear')
 while True:
     query = input("Enter your question: ")
-    response = rag(query, rag_retriever, llm, top_k=RAG_TOP_K, return_context=True)
+    response = rag(
+        query,
+        rag_retriever,
+        llm,
+        top_k=RAG_TOP_K,
+        return_context=True,
+        reranker=reranker,
+        rerank_top_k=RERANK_TOP_K,
+    )
     print(response["answer"])
     print("\nSources:")
     for source in response["sources"]:

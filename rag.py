@@ -23,9 +23,20 @@ llm = ChatGroq(
     max_retries=GROQ_MAX_RETRIES,
 )
 
-def rag(query, retriever, llm, top_k=10, return_context=False):
+def rag(
+    query,
+    retriever,
+    llm,
+    top_k=10,
+    return_context=False,
+    reranker=None,
+    rerank_top_k=None,
+):
 
     results = retriever.retrieve(query, top_k=top_k)
+
+    if reranker is not None and results:
+        results = reranker.rerank(query, results, top_k=rerank_top_k or top_k)
 
     if not results:
         return {
@@ -50,23 +61,29 @@ def rag(query, retriever, llm, top_k=10, return_context=False):
     prompt = f"""
 You are a technical documentation assistant.
 
-You MUST answer ONLY using the provided context.
-Do NOT use outside knowledge.
-Question: {query}
+STRICT RULES:
+- Use ONLY the provided context.
+- Do NOT assume missing values.
+- If something is not explicitly stated, say "Not specified in context".
+
+When answering:
+- Identify ALL relevant components involved in the query.
+- Provide a complete, structured explanation covering those components.
+- Do NOT skip necessary steps if they are mentioned in context.
+
 Context:
 {context}
-Sources:
-{sources}
 
-STRICT:
-Citations should be accurate
-FORMAT YOUR RESPONSE EXACTLY LIKE THIS:
+Question:
+{query}
+
+FORMAT:
 
 Answer:
-<clear, structured answer>
+<structured answer>
 
 Citations:
-- Page <number>: <short supporting quote>
+- Page <number>: "<exact sentence>"
 
 Confidence:
 <High / Medium / Low>
