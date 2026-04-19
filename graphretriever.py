@@ -8,7 +8,6 @@ class GraphRetriever:
         self.password = os.getenv("NEO4J_PASSWORD")
         self.database = os.getenv("NEO4J_DATABASE", "neo4j")
 
-        # Added a 5-second timeout so it doesn't hang if the database is offline/paused
         self.driver = GraphDatabase.driver(
             self.uri, 
             auth=(self.user, self.password),
