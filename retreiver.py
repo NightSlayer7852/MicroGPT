@@ -11,11 +11,11 @@ from qdrant_client.models import (
     PointStruct,
 )
 import uuid
-from fastembed import SparseTextEmbedding
 from qdrant_client.models import (
     Prefetch,
     FusionQuery,
     Fusion,
+    models
 )
 from typing import List, Dict, Any
 
@@ -23,28 +23,28 @@ from embedding import EmbeddingManager
 from vector_store import VectorStore
 
 class RAGRetriever:
-    def __init__(self, vector_store: VectorStore, embedding_manager: EmbeddingManager, sparse_model):
+    def __init__(self, vector_store: VectorStore, embedding_manager: EmbeddingManager):
         self.vector_store = vector_store
         self.embedding_manager = embedding_manager
-        self.sparse_model = sparse_model
 
     def retrieve(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
 
         print(f"Retrieving documents for query: {query}")
 
+        # Dense embedding
         dense_vector = self.embedding_manager.generate_embeddings([query])[0]
-        sparse_vector = list(self.sparse_model.embed([query]))[0]
 
+        # Hybrid prefetch (Dense + BM25 from Qdrant)
         prefetch = [
-            Prefetch(
+            models.Prefetch(
                 query=dense_vector.tolist(),
                 using="dense",
                 limit=20,
             ),
-            Prefetch(
-                query=SparseVector(
-                    indices=sparse_vector.indices.tolist(),
-                    values=sparse_vector.values.tolist(),
+            models.Prefetch(
+                query=models.Document(
+                    text=query,
+                    model="bm25"
                 ),
                 using="sparse",
                 limit=20,
@@ -54,7 +54,7 @@ class RAGRetriever:
         results = self.vector_store.client.query_points(
             collection_name=self.vector_store.collection_name,
             prefetch=prefetch,
-            query=FusionQuery(fusion=Fusion.RRF),
+            query=models.FusionQuery(fusion=models.Fusion.RRF),
             limit=top_k,
             with_payload=True,
         )

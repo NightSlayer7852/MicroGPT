@@ -11,7 +11,6 @@ from qdrant_client.models import (
     PointStruct,
 )
 import uuid
-from fastembed import SparseTextEmbedding
 from qdrant_client.models import (
     Prefetch,
     FusionQuery,
