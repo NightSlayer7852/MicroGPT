@@ -4,3 +4,5 @@ qdrant-client
 langchain-groq
 python-dotenv
 neo4j
+fastapi
+uvicorn
