@@ -6,3 +6,4 @@ python-dotenv
 neo4j
 fastapi
 uvicorn
+gunicorn
