@@ -83,7 +83,7 @@ class QueryResponse(BaseModel):
     sources: List[Source]
     confidence: float
 
-@app.post("/api/query", response_model=QueryResponse)
+@app.post("/query", response_model=QueryResponse)
 def query_model(request: QueryRequest):
     try:
         response = rag(

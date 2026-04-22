@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # This file extends the base docker-compose.yml and overrides settings for production
+  api:
+    # In production, we don't want local files mapped into the container
+    # However, to override a volume list we would need a different approach.
+    # For now, it will inherit the volumes from docker-compose.yml.
+    restart: always
+
+  nginx:
+    ports:
+      # Expose HTTPS port in addition to HTTP
+      - "443:443"
+    volumes:
+      # Override the development config with the production config
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      # Mount the certificates provided by your cloud
+      - ./nginx/certs:/etc/nginx/certs:ro

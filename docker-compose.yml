@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    # Enable multiple instances of our API for Load Balancing
+    deploy:
+      replicas: 3
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      # Mount local files for hot-reloading during development
+      - .:/app
+      - /app/.venv
+      - /app/__pycache__
+      - /app/api/__pycache__
+
+  nginx:
+    image: nginx:alpine
+    container_name: microgpt_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+    restart: unless-stopped
