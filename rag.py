@@ -71,7 +71,7 @@ def rag(
     # 🔹 3. Merge results
     all_results = base_results + graph_results
 
-    # 🔹 4. Deduplicate (VERY IMPORTANT)
+    # 🔹 4. Deduplicate
     seen = set()
     unique_results = []
     for doc in all_results:
@@ -80,7 +80,7 @@ def rag(
             seen.add(key)
             unique_results.append(doc)
 
-    # 🔹 5. Rerank (optional)
+    # 🔹 5. Rerank
     if reranker is not None and unique_results:
         unique_results = reranker.rerank(
             query,
